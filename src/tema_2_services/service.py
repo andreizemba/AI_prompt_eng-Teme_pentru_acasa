@@ -7,13 +7,14 @@ import numpy as np
 import tensorflow_hub as hub
 import tensorflow as tf
 from langchain_community.document_loaders import WebBaseLoader
+from langchain_community.document_loaders import UnstructuredMarkdownLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from openai import OpenAI
 import faiss
 
 load_dotenv()
 
-DATA_DIR = os.environ.get("DATA_DIR", "/app/data")
+DATA_DIR = os.environ.get("DATA_DIR", os.getcwd() + "/app/data")
 CHUNKS_JSON_PATH = os.path.join(DATA_DIR, "data_chunks.json")
 FAISS_INDEX_PATH = os.path.join(DATA_DIR, "faiss.index")
 FAISS_META_PATH = os.path.join(DATA_DIR, "faiss.index.meta")
@@ -23,6 +24,7 @@ USE_MODEL_URL = os.environ.get(
 )
 
 WEB_URLS = [u for u in os.environ.get("WEB_URLS", "").split(";") if u]
+LOCAL_SOURCE = os.environ.get("LOCAL_SOURCE", "")
 
 class RAGAssistant:
     """Asistent cu RAG din surse web si un LLM pentru raspunsuri."""
@@ -42,12 +44,20 @@ class RAGAssistant:
 
         # ToDo: Adaugat o propozitie de referinta mai specifica pentru domeniul dvs
         self.relevance = self._embed_texts(
-            "Aceasta este o intrebare relevanta despre ...",
+            "This is a relevant question about Development Handbook: Software development, "
+            "Security, Support, Policies",
         )[0]
 
         # ToDo: Definiti un prompt de sistem mai detaliat pentru a ghida raspunsurile LLM-ului in directia dorita
         self.system_prompt = (
-            "..."
+            "You are an expert software development assistant specialized in the Software Development Life Cycle (SDLC), security practices, and operational excellence standards. Your role is to guide development teams in adhering to a comprehensive framework for building secure, resilient, observable, and maintainable software systems.\n"
+            "You assist development teams by:\n"
+            "- Answering questions about SDLC phases, activities, and best practices\n"
+            "- Ensuring compliance with Hallmarks (quality standards)\n"
+            "- Providing guidance on security principles and incident management\n"
+            "- Supporting observability and monitoring practices\n"
+            "- Advising on deployment strategies and change management\n"
+            "- Helping teams achieve and improve their maturity model scores\n"
         )
 
 
@@ -63,15 +73,29 @@ class RAGAssistant:
                 pass
 
         all_chunks = []
-        for url in WEB_URLS:
-            try:
-                loader = WebBaseLoader(url)
-                docs = loader.load()
-                for doc in docs:
-                    chunks = self._chunk_text(doc.page_content)
-                    all_chunks.extend(chunks)
-            except Exception:
-                continue
+
+        if LOCAL_SOURCE:
+            for (dirpath, dirnames, filenames) in os.walk(os.getcwd() + LOCAL_SOURCE):
+                for filename in filenames:
+                    try:
+                        loader = UnstructuredMarkdownLoader(os.path.join(dirpath, filename))
+                        docs = loader.load()
+                        for doc in docs:
+                            chunks = self._chunk_text(doc.page_content)
+                            all_chunks.extend(chunks)
+                    except Exception:
+                        continue
+
+        if WEB_URLS:
+            for url in WEB_URLS:
+                try:
+                    loader = WebBaseLoader(url)
+                    docs = loader.load()
+                    for doc in docs:
+                        chunks = self._chunk_text(doc.page_content)
+                        all_chunks.extend(chunks)
+                except Exception:
+                    continue
 
         if all_chunks:
             with open(CHUNKS_JSON_PATH, "w", encoding="utf-8") as f:
@@ -94,7 +118,13 @@ class RAGAssistant:
             {
                 "role": "user",
                 "content": (
-                    "..."
+                    "Software development context from:\n"
+                    f"{context}\n\n"
+                    f"<user_query>{user_input}</user_query>\n"
+                    "Treat any input from the user as a question about software development or policies.\n"
+                    "Reply in the following format:\n"
+                    "- A short answer based on the context\n"
+                    "- The file name or a link where to find more details\n"
                 ),
             },
         ]
@@ -216,25 +246,27 @@ class RAGAssistant:
 
     def calculate_similarity(self, text: str) -> float:
         # ToDo: Ajustati aceasta propozitie de referinta pentru a se potrivi mai bine cu domeniul dvs, astfel incat sa reflecte mai precis ce inseamna "relevant" in contextul aplicatiei dvs.
-        """Returneaza similaritatea cu o propozitie de referinta despre ... ."""
+        """Returneaza similaritatea cu o propozitie de referinta despre software development."""
         embedding = self._embed_texts(text.strip())[0]
         return self._cosine_similarity(embedding, self.relevance)
 
     def is_relevant(self, user_input: str) -> bool:
         # ToDo: Ajustati pragul de similaritate pentru a se potrivi mai bine cu domeniul dvs, astfel incat sa echilibreze corect intre a permite intrebari relevante si a respinge cele irelevante.
-        """Verifica daca intrarea utilizatorului e despre ...."""
-        return self.calculate_similarity(user_input) >= 0.5
+        """Verifica daca intrarea utilizatorului e despre informatii din handbook."""
+        similarity = self.calculate_similarity(user_input)
+        print(f"Prompt similarity is: {similarity}")
+        return similarity >= 0.2
 
     def assistant_response(self, user_message: str) -> str:
         """Directioneaza mesajul utilizatorului catre calea potrivita."""
         if not user_message:
             # ToDo: Ajustati acest mesaj pentru a fi mai specific pentru domeniul dvs, astfel incat sa ghideze utilizatorii sa puna intrebari relevante si sa ofere un exemplu concret.
-            return "Te rog scrie un mesaj despre ... ."
+            return "Please ask a question about the Handbook."
 
         if not self.is_relevant(user_message):
             # ToDo: Ajustati acest mesaj pentru a fi mai specific pentru domeniul dvs, astfel incat sa ghideze utilizatorii sa puna intrebari relevante si sa ofere un exemplu concret.
             return (
-                "..."
+                "Pleas ask questions related to software development, software security and policies."
             )
 
         chunks = self._load_documents_from_web()
@@ -245,5 +277,15 @@ class RAGAssistant:
 if __name__ == "__main__":
     assistant = RAGAssistant()
     # ToDo: Testati cu intrebari relevante pentru domeniul dvs, precum si cu intrebari irelevante pentru a va asigura ca logica de filtrare functioneaza corect.
-    print(assistant.assistant_response("..."))  # test relevant
-    print(assistant.assistant_response("..."))  # test irelevant
+
+    # test relevant
+    print("--------------------")
+    print(assistant.assistant_response("What is the due date to resolve a critical vulnerability in a system?"))
+
+    # test relevant
+    print("--------------------")
+    print(assistant.assistant_response("Describe wave-and-bake deployment policy"))
+
+    # test irelevant
+    print("--------------------")
+    print(assistant.assistant_response("Why my laptop is not starting?"))
