@@ -37,7 +37,7 @@ class RAGAssistant:
 
         self.client = OpenAI(
             api_key=self.groq_api_key,
-            base_url=os.environ.get("GROQ_BASE_URL"))
+            base_url=os.environ.get("GROQ_BASE_URL") + "/openai/v1")
 
         os.makedirs(DATA_DIR, exist_ok=True)
         self.embedder = None
