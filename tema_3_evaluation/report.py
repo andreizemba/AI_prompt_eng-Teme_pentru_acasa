@@ -16,10 +16,10 @@ def _score_color(score: float) -> str:
 
 def _score_label(score: float) -> str:
     if score >= 0.9:
-        return "Excelent"
+        return "Excellent"
     elif score >= 0.7:
-        return "Acceptabil"
-    return "Slab"
+        return "Acceptable"
+    return "Weak"
 
 
 def _card_html(i: int, r: dict) -> str:
@@ -34,7 +34,7 @@ def _card_html(i: int, r: dict) -> str:
         </div>
         <div class="scores-row">
             <div class="score-box" style="border-color:{c1}">
-                <div class="score-label">Relevanță</div>
+                <div class="score-label">Relevance</div>
                 <div class="score-value" style="color:{c1}">{r["Relevancy_score"]:.2f}</div>
                 <div class="score-bar-bg">
                     <div class="score-bar-fill" style="width:{r['Relevancy_score']*100:.0f}%;background:{c1}"></div>
@@ -43,7 +43,7 @@ def _card_html(i: int, r: dict) -> str:
                 <p class="score-reason">{_html.escape(r["Relevancy_reason"] or "")}</p>
             </div>
             <div class="score-box" style="border-color:{c2}">
-                <div class="score-label">Corectitudine</div>
+                <div class="score-label">Correctness</div>
                 <div class="score-value" style="color:{c2}">{r["Correctness_score"]:.2f}</div>
                 <div class="score-bar-bg">
                     <div class="score-bar-fill" style="width:{r['Correctness_score']*100:.0f}%;background:{c2}"></div>
@@ -53,7 +53,7 @@ def _card_html(i: int, r: dict) -> str:
             </div>
         </div>
         <div class="response-section">
-            <div class="response-label">Răspuns LLM</div>
+            <div class="response-label">LLM response</div>
             <div class="markdown-body" data-markdown="{_html.escape(r["response"])}"></div>
         </div>
     </div>"""
@@ -71,7 +71,7 @@ def save_report(results: list[dict], scores1: list[float], scores2: list[float],
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Raport Evaluare</title>
+    <title>Evaluation Report</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         * {{ box-sizing: border-box; margin: 0; padding: 0; }}
@@ -188,20 +188,20 @@ def save_report(results: list[dict], scores1: list[float], scores2: list[float],
 <body>
 <div class="container">
     <div class="report-header">
-        <h1>Raport Evaluare</h1>
-        <p class="subtitle">Generat la {run_time} &nbsp;·&nbsp; {len(results)} cazuri de test &nbsp;·&nbsp; Prag: {threshold}</p>
+        <h1>Evaluation Report</h1>
+        <p class="subtitle">Generate at {run_time} &nbsp;·&nbsp; {len(results)} test cases &nbsp;·&nbsp; Threshold: {threshold}</p>
     </div>
 
     <div class="summary">
         <div class="summary-box">
-            <div class="s-label">Relevanță</div>
+            <div class="s-label">Relevance</div>
             <div class="s-value" style="color:{_score_color(relevance_pct/100)}">{relevance_pct:.0f}%</div>
-            <div class="s-sub">cazuri cu scor ≥ {threshold}</div>
+            <div class="s-sub">cases with score ≥ {threshold}</div>
         </div>
         <div class="summary-box">
-            <div class="s-label">Corectitudine</div>
+            <div class="s-label">Correctness</div>
             <div class="s-value" style="color:{_score_color(bias_pct/100)}">{bias_pct:.0f}%</div>
-            <div class="s-sub">cazuri cu scor ≥ {threshold}</div>
+            <div class="s-sub">cases with score ≥ {threshold}</div>
         </div>
     </div>
 

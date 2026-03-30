@@ -33,7 +33,7 @@ class RAGAssistant:
         """Initializeaza clientul LLM, embedderul si prompturile."""
         self.groq_api_key = os.environ.get("GROQ_API_KEY")
         if not self.groq_api_key:
-            raise ValueError("Seteaza GROQ_API_KEY in variabilele de mediu.")
+            raise ValueError("GROQ_API_KEY is missing from environment variables.")
 
         self.client = OpenAI(
             api_key=self.groq_api_key,
@@ -137,8 +137,8 @@ class RAGAssistant:
             return response.choices[0].message.content
         except Exception:
             return (
-                "Asistent: Nu pot ajunge la modelul de limbaj acum. "
-                "Te rog incearca din nou in cateva momente."
+                "Assistant: can't reach the LLM right now."
+                "Please try again later."
             )
         
     def _embed_texts(self, texts: str | list[str], batch_size: int = 32) -> np.ndarray:
@@ -152,11 +152,11 @@ class RAGAssistant:
         else:
             infer = self.embedder.signatures.get("default")
             if infer is None:
-                raise ValueError("Model USE nu expune semnatura 'default'.")
+                raise ValueError("The USE model doesn't expose a 'default' signature.")
             outputs = infer(tf.constant(texts))
             embeddings = outputs.get("default")
             if embeddings is None:
-                raise ValueError("Model USE nu a returnat cheia 'default'.")
+                raise ValueError("The USE model didn't returned a 'default' key.")
         return np.asarray(embeddings, dtype="float32")
 
     def _chunk_text(self, text: str) -> list[str]:
@@ -178,7 +178,7 @@ class RAGAssistant:
     def _build_faiss_index_from_chunks(self, chunks: list[str]) -> faiss.IndexFlatIP:
         """Construieste index FAISS din chunks text si il salveaza pe disc."""
         if not chunks:
-            raise ValueError("Lista de chunks este goala.")
+            raise ValueError("The chunks list is empty.")
 
         embeddings = self._embed_texts(chunks).astype("float32")
         faiss.normalize_L2(embeddings)
