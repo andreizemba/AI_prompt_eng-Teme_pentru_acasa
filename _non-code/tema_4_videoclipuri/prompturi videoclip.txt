@@ -1,0 +1,23 @@
+Prompt 1:
+[Cinematography] Medium shot with
+[Subject] three motorcyclers riding on adventure style motorcycles
+[Action] arriving to Durmitor National Park in Montenegro
+[Context] during the morning of a summer day with clear skies and the sun raising up.
+[Style & Ambiance] The scene is filmed with an action camera in colors.
+
+-------------------------------------------------------------------------------
+
+Prompt 2:
+The riders go through the Durmitor National Park in Montenegro
+0-2s: going up the park through Piva canyon
+2-5s: arriving to the top of the park at Prutash Grand
+5-8s: going down the park
+
+-------------------------------------------------------------------------------
+
+Prompt 3:
+[Cinematography] Medium shot with
+[Subject] three motorcyclers riding on adventure style motorcycles
+[Action] leave the Durmitor National Park in Montenegro
+[Context] during the evening of a summer day when the sun is going down.
+[Style & Ambiance] The scene is filmed with an action camera in colors.
