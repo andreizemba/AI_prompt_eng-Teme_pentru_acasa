@@ -60,7 +60,7 @@ async def _fetch_response(client: httpx.AsyncClient, message: str, max_retries: 
     for attempt in range(max_retries + 1):
         response = await client.post(f"{BASE_URL}/chat/", json={"message": message})
         data = response.json()
-        if data.get("detail") != "Raspunsul de chat a expirat":
+        if data.get("detail") != "The chat response has expired":
             return data
         if attempt < max_retries:
             await asyncio.sleep(2)
@@ -102,7 +102,7 @@ async def _run_evaluation() -> tuple[list[dict], list[float], list[float]]:
 def run_evaluation() -> None:
     results, scores1, scores2 = asyncio.run(_run_evaluation())
     output_file = save_report(results, scores1, scores2, THRESHOLD)
-    print(f"\nRaport salvat in: {output_file}")
+    print(f"\nReport saved in: {output_file}")
 
 
 if __name__ == "__main__":
