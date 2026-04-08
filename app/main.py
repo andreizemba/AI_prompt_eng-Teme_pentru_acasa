@@ -29,7 +29,7 @@ assistant_instance = RAGAssistant()
 
 @app.get("/")
 async def root():    
-    return {"message": "Salut, RAG Assistant ruleaza!"}
+    return {"message": "Hi, RAG Assistant is running!"}
 
 class ChatRequest(BaseModel):
     message: str
@@ -48,10 +48,10 @@ async def chat(request: ChatRequest):
             timeout=45
         )
     except asyncio.TimeoutError:
-        raise HTTPException(status_code=504, detail="Raspunsul de chat a expirat")
+        raise HTTPException(status_code=504, detail="The chat response has expired")
     except Exception as e:
         logging.exception("Chat failed")
-        raise HTTPException(status_code=500, detail=f"Chat esuat: {repr(e)}")
+        raise HTTPException(status_code=500, detail=f"Chat failed: {repr(e)}")
 
     return {"response": response}
 

@@ -16,15 +16,15 @@ def _score_color(score: float) -> str:
 
 def _score_label(score: float) -> str:
     if score >= 0.9:
-        return "Excelent"
+        return "Excellent"
     elif score >= 0.7:
-        return "Acceptabil"
-    return "Slab"
+        return "Acceptable"
+    return "Weak"
 
 
 def _card_html(i: int, r: dict) -> str:
-    c1 = _score_color(r["relevanta_score"])
-    c2 = _score_color(r["bias_score"])
+    c1 = _score_color(r["Relevancy_score"])
+    c2 = _score_color(r["Correctness_score"])
 
     return f"""
     <div class="card">
@@ -34,26 +34,26 @@ def _card_html(i: int, r: dict) -> str:
         </div>
         <div class="scores-row">
             <div class="score-box" style="border-color:{c1}">
-                <div class="score-label">Relevanță Fitness</div>
-                <div class="score-value" style="color:{c1}">{r["relevanta_score"]:.2f}</div>
+                <div class="score-label">Relevance</div>
+                <div class="score-value" style="color:{c1}">{r["Relevancy_score"]:.2f}</div>
                 <div class="score-bar-bg">
-                    <div class="score-bar-fill" style="width:{r['relevanta_score']*100:.0f}%;background:{c1}"></div>
+                    <div class="score-bar-fill" style="width:{r['Relevancy_score']*100:.0f}%;background:{c1}"></div>
                 </div>
-                <div class="score-tag" style="background:{c1}">{_score_label(r["relevanta_score"])}</div>
-                <p class="score-reason">{_html.escape(r["relevanta_reason"] or "")}</p>
+                <div class="score-tag" style="background:{c1}">{_score_label(r["Relevancy_score"])}</div>
+                <p class="score-reason">{_html.escape(r["Relevancy_reason"] or "")}</p>
             </div>
             <div class="score-box" style="border-color:{c2}">
-                <div class="score-label">Bias Fitness</div>
-                <div class="score-value" style="color:{c2}">{r["bias_score"]:.2f}</div>
+                <div class="score-label">Correctness</div>
+                <div class="score-value" style="color:{c2}">{r["Correctness_score"]:.2f}</div>
                 <div class="score-bar-bg">
-                    <div class="score-bar-fill" style="width:{r['bias_score']*100:.0f}%;background:{c2}"></div>
+                    <div class="score-bar-fill" style="width:{r['Correctness_score']*100:.0f}%;background:{c2}"></div>
                 </div>
-                <div class="score-tag" style="background:{c2}">{_score_label(r["bias_score"])}</div>
-                <p class="score-reason">{_html.escape(r["bias_reason"] or "")}</p>
+                <div class="score-tag" style="background:{c2}">{_score_label(r["Correctness_score"])}</div>
+                <p class="score-reason">{_html.escape(r["Correctness_reason"] or "")}</p>
             </div>
         </div>
         <div class="response-section">
-            <div class="response-label">Răspuns LLM</div>
+            <div class="response-label">LLM response</div>
             <div class="markdown-body" data-markdown="{_html.escape(r["response"])}"></div>
         </div>
     </div>"""
@@ -71,7 +71,7 @@ def save_report(results: list[dict], scores1: list[float], scores2: list[float],
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Raport Evaluare — Instructor Fitness</title>
+    <title>Evaluation Report</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         * {{ box-sizing: border-box; margin: 0; padding: 0; }}
@@ -188,26 +188,26 @@ def save_report(results: list[dict], scores1: list[float], scores2: list[float],
 <body>
 <div class="container">
     <div class="report-header">
-        <h1>Raport Evaluare — Instructor Fitness</h1>
-        <p class="subtitle">Generat la {run_time} &nbsp;·&nbsp; {len(results)} cazuri de test &nbsp;·&nbsp; Prag: {threshold}</p>
+        <h1>Evaluation Report</h1>
+        <p class="subtitle">Generate at {run_time} &nbsp;·&nbsp; {len(results)} test cases &nbsp;·&nbsp; Threshold: {threshold}</p>
     </div>
 
     <div class="summary">
         <div class="summary-box">
-            <div class="s-label">Relevanță Fitness</div>
+            <div class="s-label">Relevance</div>
             <div class="s-value" style="color:{_score_color(relevance_pct/100)}">{relevance_pct:.0f}%</div>
-            <div class="s-sub">cazuri cu scor ≥ {threshold}</div>
+            <div class="s-sub">cases with score ≥ {threshold}</div>
         </div>
         <div class="summary-box">
-            <div class="s-label">Fără Bias</div>
+            <div class="s-label">Correctness</div>
             <div class="s-value" style="color:{_score_color(bias_pct/100)}">{bias_pct:.0f}%</div>
-            <div class="s-sub">cazuri cu scor ≥ {threshold}</div>
+            <div class="s-sub">cases with score ≥ {threshold}</div>
         </div>
     </div>
 
     {cards}
 
-    <div class="footer">Instructor Fitness — Evaluation Report</div>
+    <div class="footer">Evaluation Report</div>
 </div>
 <script>
     document.querySelectorAll(".markdown-body[data-markdown]").forEach(el => {{
